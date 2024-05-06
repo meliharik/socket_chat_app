@@ -61,7 +61,7 @@ class Message extends ChatEvent {
     String? userName,
   }) {
     return Message(
-      messageContent: content ?? this.messageContent,
+      messageContent: content ?? messageContent,
       roomName: roomName ?? this.roomName,
       userName: userName ?? this.userName,
     );

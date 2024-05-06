@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 class Subscription {
   final String roomName;
   final String userName;
-  Subscription({
+  const Subscription({
     required this.roomName,
     required this.userName,
   });

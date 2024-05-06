@@ -42,8 +42,16 @@ dependencies:
   flutter_parsed_text: ^2.1.0
   font_awesome_flutter: ^9.0.0
   fancy_shimmer_image: ^2.0.0-nullsafety.0
-  http:
   stream_transform: ^2.0.0
+  firebase_core: ^2.30.1
+  google_fonts: ^6.2.1
+  http: ^1.2.1
+  firebase_auth: ^4.19.4
+  firebase_storage: ^11.7.4
+  cloud_firestore: ^4.17.2
+  flutter_multi_formatter: ^2.12.8
+  flutter_secure_storage: ^9.0.0
+  fast_rsa: ^3.6.2
   
 
 dev_dependencies:

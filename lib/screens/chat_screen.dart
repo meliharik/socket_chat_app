@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api, deprecated_member_use
+
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:socket_chat_app/controllers/socket_controller.dart';
@@ -7,7 +9,7 @@ import 'package:socket_chat_app/widget/advanced_text_field.dart';
 import 'package:socket_chat_app/widget/chat_bubble.dart';
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({Key? key}) : super(key: key);
+  const ChatScreen({super.key});
 
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -23,13 +25,13 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     _textEditingController = TextEditingController();
 
-    WidgetsBinding.instance?.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       _socketController = SocketController.get(context);
 
       //Start listening to the text editing controller
       _textEditingController.addListener(() {
-        final _text = _textEditingController.text.trim();
-        if (_text.isEmpty) {
+        final text = _textEditingController.text.trim();
+        if (text.isEmpty) {
           _socketController!.stopTyping();
           _isTextFieldHasContentYet = false;
         } else {
@@ -53,8 +55,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void _sendMessage() {
     if (_textEditingController.text.isEmpty) return;
-    final _message = Message(messageContent: _textEditingController.text);
-    _socketController?.sendMessage(_message);
+    final message = Message(messageContent: _textEditingController.text);
+    _socketController?.sendMessage(message);
     _textEditingController.clear();
   }
 
@@ -70,7 +72,7 @@ class _ChatScreenState extends State<ChatScreen> {
             automaticallyImplyLeading: false,
             actions: [
               IconButton(
-                icon: Icon(Icons.logout),
+                icon: const Icon(Icons.logout),
                 onPressed: () {
                   _socketController!.unsubscribe();
                   Navigator.pop(context);
@@ -84,43 +86,54 @@ class _ChatScreenState extends State<ChatScreen> {
                 Positioned.fill(
                   child: StreamBuilder<List<ChatEvent>>(
                       stream: _socketController?.watchEvents,
-                      initialData: [],
+                      initialData: const [],
                       builder: (context, snapshot) {
-                        if (!snapshot.hasData) return Center(child: CircularProgressIndicator.adaptive());
-                        final _events = snapshot.data!;
-                        if (_events.isEmpty) return Center(child: Text("Start sending..."));
+                        if (!snapshot.hasData) {
+                          return const Center(
+                              child: CircularProgressIndicator.adaptive());
+                        }
+                        final events = snapshot.data!;
+                        if (events.isEmpty) {
+                          return const Center(child: Text("Start sending..."));
+                        }
                         return ListView.separated(
                           reverse: true,
-                          padding: const EdgeInsets.symmetric(horizontal: 20.0).add(
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 20.0).add(
                             const EdgeInsets.only(bottom: 70.0),
                           ),
-                          itemCount: _events.length,
-                          separatorBuilder: (context, index) => SizedBox(height: 5.0),
+                          itemCount: events.length,
+                          separatorBuilder: (context, index) =>
+                              const SizedBox(height: 5.0),
                           itemBuilder: (context, index) {
-                            final _event = _events[index];
+                            final event = events[index];
                             //? If the event is a new message
-                            if (_event is Message) {
+                            if (event is Message) {
                               //TODO: Determin the type of the message user by using user's socket_id not his name.
                               return TextBubble(
-                                message: _event,
-                                type: _event.userName == _socketController!.subscription!.userName
+                                message: event,
+                                type: event.userName ==
+                                        _socketController!
+                                            .subscription!.userName
                                     ? BubbleType.sendBubble
                                     : BubbleType.receiverBubble,
                               );
                               //? If a user entered or left the room
-                            } else if (_event is ChatUser) {
+                            } else if (event is ChatUser) {
                               //? The user has left the current room
-                              if (_event.userEvent == ChatUserEvent.left) {
-                                return Center(child: Text("${_event.userName} left"));
+                              if (event.userEvent == ChatUserEvent.left) {
+                                return Center(
+                                    child: Text("${event.userName} left"));
                               }
                               //? The user has joined a new room
-                              return Center(child: Text("${_event.userName} has joined"));
+                              return Center(
+                                  child: Text("${event.userName} has joined"));
 
                               //? A user started typing event
-                            } else if (_event is UserStartedTyping) {
-                              return UserTypingBubble();
+                            } else if (event is UserStartedTyping) {
+                              return const UserTypingBubble();
                             }
-                            return SizedBox();
+                            return const SizedBox();
                           },
                         );
                       }),
@@ -132,7 +145,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     color: Colors.white,
                     child: Row(
                       children: [
-                        SizedBox(width: 20),
+                        const SizedBox(width: 20),
                         Expanded(
                           child: AdvancedTextField(
                             controller: _textEditingController,
@@ -140,10 +153,10 @@ class _ChatScreenState extends State<ChatScreen> {
                             onSubmitted: (_) => _sendMessage(),
                           ),
                         ),
-                        SizedBox(width: 10),
+                        const SizedBox(width: 10),
                         IconButton(
                           onPressed: () => _sendMessage(),
-                          icon: Icon(Icons.send),
+                          icon: const Icon(Icons.send),
                         ),
                       ],
                     ),

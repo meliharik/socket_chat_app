@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "679765009225",
+    "project_id": "socket-chat-cca8f",
+    "storage_bucket": "socket-chat-cca8f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:679765009225:android:724e8c06436e30f53df098",
+        "android_client_info": {
+          "package_name": "com.example.socket_chat_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDCQjGsrSmmjMemY3IALQePnPsOVt8Huu0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

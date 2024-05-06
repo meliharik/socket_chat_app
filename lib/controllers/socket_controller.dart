@@ -1,8 +1,9 @@
+// ignore_for_file: no_leading_underscores_for_local_identifiers
+
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/material.dart';
-
 
 import 'package:socket_chat_app/models/events.dart';
 import 'package:socket_chat_app/models/subscription_models.dart';
@@ -10,10 +11,9 @@ import 'package:socket_chat_app/models/subscription_models.dart';
 import 'package:socket_io_client/socket_io_client.dart';
 import 'package:provider/provider.dart';
 
-
 export 'package:provider/provider.dart';
 
-const String kLocalhost = 'https://3531-78-186-164-41.ngrok-free.app';
+const String kLocalhost = 'https://39f8-78-186-164-41.ngrok-free.app';
 
 ///Converts `enum` to `String`
 String enumToString(_enum) {
@@ -67,7 +67,8 @@ class SocketController {
   ///       ..connect();
   /// });
   ///```
-  static SocketController get(BuildContext context) => context.read<SocketController>();
+  static SocketController get(BuildContext context) =>
+      context.read<SocketController>();
 
   Socket? _socket;
   Subscription? _subscription;
@@ -85,7 +86,8 @@ class SocketController {
   bool get disConnected => !connected;
 
   ///Returns a stream with the chat messages.
-  Stream<List<ChatEvent>>? get watchEvents => _newMessagesController?.stream.asBroadcastStream();
+  Stream<List<ChatEvent>>? get watchEvents =>
+      _newMessagesController?.stream.asBroadcastStream();
 
   /// Initializes the controller and its streams
   ///
@@ -134,7 +136,8 @@ class SocketController {
   /// @Params:
   /// - `onConnectionError`: socket error callback method.
   /// - `connected`: socket conection success callback method.
-  Socket connect({DynamicCallback? onConnectionError, VoidCallback? connected}) {
+  Socket connect(
+      {DynamicCallback? onConnectionError, VoidCallback? connected}) {
     assert(_socket != null, "Did you forget to call `init()` first?");
 
     final _socketS = _socket!.connect();
@@ -171,7 +174,7 @@ class SocketController {
       enumToString(OUTEvent.subscribe),
       subscription.toMap(),
     );
-    this._subscription = subscription;
+    _subscription = subscription;
     onSubscribe?.call();
     log("Subscribed to ${subscription.roomName}");
   }
@@ -258,7 +261,7 @@ class SocketController {
   }
 
   void _connectedAssetion() {
-    assert(this._socket != null, "Did you forget to call `init()` first?");
+    assert(_socket != null, "Did you forget to call `init()` first?");
     if (disConnected) throw NotConnected();
   }
 

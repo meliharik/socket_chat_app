@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'dart:async';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:flutter/material.dart';
@@ -21,13 +23,13 @@ class AdvancedTextField extends StatefulWidget {
   final String? hintText;
 
   const AdvancedTextField({
-    Key? key,
+    super.key,
     this.onSatusChange,
     this.onChanged,
     this.onSubmitted,
     this.controller,
     this.hintText,
-  }) : super(key: key);
+  });
   @override
   _AdvancedTextFieldState createState() => _AdvancedTextFieldState();
 }
@@ -47,7 +49,7 @@ class _AdvancedTextFieldState extends State<AdvancedTextField> {
     _focusNode = FocusNode();
     _streamController = StreamController.broadcast();
     var stream = _streamController.stream;
-    stream.debounce(Duration(milliseconds: 800), leading: true).listen((s) {
+    stream.debounce(const Duration(milliseconds: 800), leading: true).listen((s) {
       if (!_started) {
         _started = true;
         _stopped = false;

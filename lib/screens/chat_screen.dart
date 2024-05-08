@@ -1,17 +1,15 @@
 // ignore_for_file: library_private_types_in_public_api, deprecated_member_use
 
 import 'dart:async';
-import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:socket_chat_app/controllers/socket_controller.dart';
-
 import 'package:socket_chat_app/models/events.dart';
-import 'package:socket_chat_app/models/firestore_user.dart';
 import 'package:socket_chat_app/models/firestore_message.dart';
+import 'package:socket_chat_app/models/firestore_user.dart';
 import 'package:socket_chat_app/services/firestore_service.dart';
 import 'package:socket_chat_app/widget/advanced_text_field.dart';
 import 'package:socket_chat_app/widget/chat_bubble.dart';
@@ -32,7 +30,7 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isTextFieldHasContentYet = false;
 
   List<FirestoreMessage> messages = [];
-  final ScrollController _controller = ScrollController();
+  final ScrollController controller = ScrollController();
 
   @override
   void initState() {
@@ -82,6 +80,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void _sendMessage() {
     if (_textEditingController.text.isEmpty) return;
+    FocusScope.of(context).unfocus();
+
     final message = Message(messageContent: _textEditingController.text);
     _socketController?.sendMessage(message);
     FirestoreService().createMessage(

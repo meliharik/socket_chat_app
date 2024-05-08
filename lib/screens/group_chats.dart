@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
@@ -6,19 +8,20 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:socket_chat_app/controllers/socket_controller.dart';
 import 'package:socket_chat_app/helpers/dialog.dart';
 import 'package:socket_chat_app/main.dart';
-import 'package:socket_chat_app/models/firestore_user.dart';
+import 'package:socket_chat_app/models/group_chat.dart';
 import 'package:socket_chat_app/models/subscription_models.dart';
-import 'package:socket_chat_app/screens/chat_screen.dart';
+import 'package:socket_chat_app/screens/create_group_chat.dart';
+import 'package:socket_chat_app/screens/group_chat_screen.dart';
 import 'package:socket_chat_app/services/firestore_service.dart';
 
-class ChatsScreen extends StatefulWidget {
-  const ChatsScreen({super.key});
+class GroupChatsScreen extends StatefulWidget {
+  const GroupChatsScreen({super.key});
 
   @override
-  State<ChatsScreen> createState() => _ChatsScreenState();
+  State<GroupChatsScreen> createState() => _GroupChatsScreenState();
 }
 
-class _ChatsScreenState extends State<ChatsScreen> {
+class _GroupChatsScreenState extends State<GroupChatsScreen> {
   bool isLoading = false;
   @override
   Widget build(BuildContext context) {
@@ -27,38 +30,49 @@ class _ChatsScreenState extends State<ChatsScreen> {
         Scaffold(
           backgroundColor: Colors.black,
           appBar: AppBar(
-            surfaceTintColor: Colors.transparent,
+            actions: [
+              IconButton(
+                onPressed: () {
+                  Navigator.push(
+                    GlobalcontextService.navigatorKey.currentContext!,
+                    MaterialPageRoute(
+                      builder: (_) => const CreateGroupChatScreen(),
+                    ),
+                  );
+                },
+                icon: const Icon(CupertinoIcons.add),
+              ),
+            ],
             centerTitle: true,
             backgroundColor: Colors.black,
             title: Text(
-              "Chats",
+              "Group Chats",
               style: GoogleFonts.poppins(
                 color: Colors.white,
               ),
             ),
           ),
           body: StreamBuilder(
-              stream: FirestoreService().getUsers(),
+              stream: FirestoreService().getGroups(),
               builder: (context, AsyncSnapshot snapshot) {
                 if (snapshot.hasData) {
                   final data = snapshot.requireData;
 
-                  List<FirestoreUser> users = [];
+                  List<FirestoreGroupChat> users = [];
+                  List<String> docIds = [];
 
                   for (var i = 0; i < data.docs.length; i++) {
                     var user = data.docs[i];
-                    FirestoreUser firestoreUser =
-                        FirestoreUser.fromMap(user.data());
-                    if (firestoreUser.phoneNumber !=
-                        FirestoreService().auth.currentUser!.phoneNumber) {
-                      users.add(firestoreUser);
-                    }
+                    FirestoreGroupChat firestoreGroupChat =
+                        FirestoreGroupChat.fromMap(user.data());
+                    users.add(firestoreGroupChat);
+                    docIds.add(user.id);
                   }
 
                   if (users.isEmpty) {
                     return Center(
                       child: Text(
-                        'No chats available',
+                        'No group chats available',
                         style: GoogleFonts.poppins(
                           color: Colors.white,
                         ),
@@ -71,7 +85,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
                         Divider(color: Colors.grey[800]),
                     itemCount: users.length,
                     itemBuilder: (context, index) {
-                      FirestoreUser user = users[index];
+                      FirestoreGroupChat user = users[index];
 
                       return Padding(
                         padding: const EdgeInsets.all(8.0),
@@ -86,14 +100,8 @@ class _ChatsScreenState extends State<ChatsScreen> {
                               isLoading = true;
                             });
                             try {
-                              var doc = await FirestoreService().getChat(
-                                [
-                                  FirestoreService()
-                                      .auth
-                                      .currentUser!
-                                      .phoneNumber!,
-                                  user.phoneNumber,
-                                ],
+                              var doc = await FirestoreService().getGroupChat(
+                                docIds[index],
                               );
                               var subscription = Subscription(
                                 roomName: doc.id,
@@ -110,8 +118,8 @@ class _ChatsScreenState extends State<ChatsScreen> {
                                     GlobalcontextService
                                         .navigatorKey.currentContext!,
                                     MaterialPageRoute(
-                                      builder: (_) => ChatScreen(
-                                        user: user,
+                                      builder: (_) => GroupChatScreen(
+                                        chat: user,
                                         chatId: doc.id,
                                       ),
                                     ),
@@ -136,11 +144,17 @@ class _ChatsScreenState extends State<ChatsScreen> {
                             color: Colors.white,
                             size: 20,
                           ),
+                          subtitle: Text(
+                            docIds[index],
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                            ),
+                          ),
                           leading: CircleAvatar(
-                            backgroundImage: NetworkImage(user.photoURL),
+                            backgroundImage: NetworkImage(user.groupPhotoUrl),
                             radius: 25,
                           ),
-                          title: Text(user.phoneNumber),
+                          title: Text(user.groupName),
                         ),
                       );
                     },

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:socket_chat_app/controllers/socket_controller.dart';
 import 'package:socket_chat_app/firebase_options.dart';
-import 'package:socket_chat_app/screens/redirect.dart';
+import 'package:socket_chat_app/redirect.dart';
 import 'package:socket_chat_app/services/remote_config_service.dart';
 
 void main() async {

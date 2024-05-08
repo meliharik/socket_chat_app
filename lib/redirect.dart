@@ -5,7 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:socket_chat_app/main.dart';
 import 'package:socket_chat_app/screens/auth/enter_number.dart';
-import 'package:socket_chat_app/screens/chats.dart';
+import 'package:socket_chat_app/widget/tabbar.dart';
 
 class RedirectPage extends StatefulWidget {
   const RedirectPage({super.key});
@@ -41,7 +41,7 @@ class _RedirectPageState extends State<RedirectPage> {
       debugPrint('phone number: ${user.phoneNumber}');
       Navigator.pushAndRemoveUntil(
         GlobalcontextService.navigatorKey.currentContext!,
-        MaterialPageRoute(builder: (context) => const ChatsScreen()),
+        MaterialPageRoute(builder: (context) => const TabBarMain()),
         (route) => false,
       );
     } else {

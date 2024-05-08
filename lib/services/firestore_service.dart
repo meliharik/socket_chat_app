@@ -1,10 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import 'package:firebase_auth/firebase_auth.dart';
-
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:socket_chat_app/models/firestore_user.dart';
+import 'package:socket_chat_app/models/firestore_group_message.dart';
 import 'package:socket_chat_app/models/firestore_message.dart';
+import 'package:socket_chat_app/models/firestore_user.dart';
 
 class FirestoreService {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -91,6 +90,11 @@ class FirestoreService {
     }
   }
 
+  Future getGroupChat(String chatId) async {
+    var chat = await firestore.collection('groupChats').doc(chatId).get();
+    return chat;
+  }
+
   // create a new message
   Future<void> createMessage({
     required String chatId,
@@ -103,6 +107,23 @@ class FirestoreService {
       'messageForSender': message,
       'senderId': senderPhoneNumber,
       'receiverId': receiverPhoneNumber,
+      'createdAt': now,
+    });
+  }
+
+  // create group chat message
+  Future<void> createGroupChatMessage({
+    required String chatId,
+    required String message,
+    required String senderPhoneNumber,
+  }) async {
+    await firestore
+        .collection('groupChats')
+        .doc(chatId)
+        .collection('messages')
+        .add({
+      'message': message,
+      'senderId': senderPhoneNumber,
       'createdAt': now,
     });
   }
@@ -120,7 +141,44 @@ class FirestoreService {
         .map((message) => FirestoreMessage.fromFirestore(message))
         .toList();
   }
-  
+
+  // get Messages, future
+  Future<List<FirestoreGroupMessage>> getGroupMessages(String chatId) async {
+    var messages = await firestore
+        .collection('groupChats')
+        .doc(chatId)
+        .collection('messages')
+        .orderBy('createdAt', descending: false)
+        .get();
+
+    return messages.docs
+        .map((message) => FirestoreGroupMessage.fromFirestore(message))
+        .toList();
+  }
+
+  // get group chats
+  Stream getGroups() {
+    return firestore
+        .collection('groupChats')
+        .orderBy('createdAt', descending: true)
+        .snapshots();
+  }
+
+  // create a new group chat
+  Future<void> createGroupChat({
+    required String groupName,
+    required String groupDescription,
+    String groupPhotoUrl = 'https://picsum.photos/200',
+    List<String> users = const [],
+  }) async {
+    await firestore.collection('groupChats').add({
+      'groupName': groupName,
+      'groupDescription': groupDescription,
+      'groupPhotoUrl': groupPhotoUrl,
+      'users': users,
+      'createdAt': now,
+    });
+  }
 
   Stream getUsers() {
     return firestore

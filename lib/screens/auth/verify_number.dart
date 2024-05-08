@@ -14,6 +14,7 @@ import 'package:socket_chat_app/helpers/dialog.dart';
 import 'package:socket_chat_app/main.dart';
 import 'package:socket_chat_app/screens/chats.dart';
 import 'package:socket_chat_app/services/firestore_service.dart';
+import 'package:socket_chat_app/widget/tabbar.dart';
 
 class VerifyNumberScreen extends StatefulWidget {
   final String verificationId;
@@ -232,7 +233,7 @@ class _VerifyNumberScreenState extends State<VerifyNumberScreen> {
 
             Navigator.pushAndRemoveUntil(
               GlobalcontextService.navigatorKey.currentContext!,
-              CupertinoPageRoute(builder: (context) => const ChatsScreen()),
+              CupertinoPageRoute(builder: (context) => const TabBarMain()),
               (route) => false,
             );
           }

@@ -49,7 +49,9 @@ class _AdvancedTextFieldState extends State<AdvancedTextField> {
     _focusNode = FocusNode();
     _streamController = StreamController.broadcast();
     var stream = _streamController.stream;
-    stream.debounce(const Duration(milliseconds: 800), leading: true).listen((s) {
+    stream
+        .debounce(const Duration(milliseconds: 800), leading: true)
+        .listen((s) {
       if (!_started) {
         _started = true;
         _stopped = false;
@@ -86,7 +88,10 @@ class _AdvancedTextFieldState extends State<AdvancedTextField> {
         _focusNode.requestFocus();
       },
       controller: widget.controller,
-      decoration: InputDecoration(hintText: widget.hintText),
+      decoration: InputDecoration(
+        border: InputBorder.none,
+        hintText: widget.hintText,
+      ),
     );
   }
 }

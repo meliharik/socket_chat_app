@@ -13,7 +13,9 @@ import 'package:provider/provider.dart';
 
 export 'package:provider/provider.dart';
 
-const String kLocalhost = 'https://39f8-78-186-164-41.ngrok-free.app';
+// const String kLocalhost = 'https://f8a4-31-223-105-64.ngrok-free.app';
+const String kLocalhost = 'http://localhost:3000';
+
 
 ///Converts `enum` to `String`
 String enumToString(_enum) {
@@ -227,6 +229,8 @@ class SocketController {
         enumToString(OUTEvent.newMessage),
         _message.toMap(),
       );
+
+      
 
     _addNewMessage(_message);
   }

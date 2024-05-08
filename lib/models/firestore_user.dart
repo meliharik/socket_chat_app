@@ -9,7 +9,6 @@ class FirestoreUser {
   final String publicKey;
   final String status;
   final DateTime lastSeen;
-  final String token;
   final String phoneNumber;
   final DateTime createdAt;
 
@@ -22,7 +21,6 @@ class FirestoreUser {
     required this.publicKey,
     required this.status,
     required this.lastSeen,
-    required this.token,
     required this.phoneNumber,
     required this.createdAt,
   });
@@ -37,7 +35,21 @@ class FirestoreUser {
       publicKey: data['publicKey'],
       status: data['status'],
       lastSeen: data['lastSeen'].toDate(),
-      token: data['token'],
+      phoneNumber: data['phoneNumber'],
+      createdAt: data['createdAt'].toDate(),
+    );
+  }
+
+  // factory for using in the stream builder
+  factory FirestoreUser.fromMap(Map data) {
+    return FirestoreUser(
+      id: data['id'],
+      displayName: data['displayName'],
+      description: data['description'],
+      photoURL: data['photoURL'],
+      publicKey: data['publicKey'],
+      status: data['status'],
+      lastSeen: data['lastSeen'].toDate(),
       phoneNumber: data['phoneNumber'],
       createdAt: data['createdAt'].toDate(),
     );

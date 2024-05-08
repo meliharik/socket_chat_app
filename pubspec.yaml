@@ -52,6 +52,7 @@ dependencies:
   flutter_multi_formatter: ^2.12.8
   flutter_secure_storage: ^9.0.0
   fast_rsa: ^3.6.2
+  firebase_remote_config: ^4.4.4
   
 
 dev_dependencies:

@@ -14,7 +14,7 @@ class _QAScreenState extends State<QAScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CupertinoNavigationBar(
+      appBar: const CupertinoNavigationBar(
         backgroundColor: Colors.black,
         border: Border(
           bottom: BorderSide(
@@ -23,7 +23,7 @@ class _QAScreenState extends State<QAScreen> {
           ),
         ),
         previousPageTitle: 'Settings',
-        middle: const Text(
+        middle: Text(
           'Q&A',
           style: TextStyle(
             fontWeight: FontWeight.w500,

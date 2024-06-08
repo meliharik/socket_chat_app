@@ -293,7 +293,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Navigator.push(
                     GlobalcontextService.navigatorKey.currentContext!,
                     CupertinoPageRoute(
-                      builder: (context) => HowAppWorksScren(),
+                      builder: (context) => const HowAppWorksScren(),
                     ),
                   );
                 },
@@ -395,7 +395,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   CupertinoSliverNavigationBar navBar() {
     return CupertinoSliverNavigationBar(
       // bottom border grey
-      border: Border(
+      border: const Border(
         bottom: BorderSide(
           color: Colors.black,
           width: 0.0,

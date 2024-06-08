@@ -173,17 +173,9 @@ class _ChatScreenState extends State<ChatScreen> {
                         separatorBuilder: (context, index) =>
                             const SizedBox(height: 5.0),
                         itemBuilder: (context, index) {
-                          // String messageString = messagesString[index];
-                          // return Text(
-                          //   messageString,
-                          //   style: const TextStyle(
-                          //     color: Colors.white,
-                          //   ),
-                          // );
                           FirestoreMessage message = messages[index];
                           if (message.senderId ==
                               FirebaseAuth.instance.currentUser!.phoneNumber) {
-                            debugPrint('sea');
                             return FutureBuilder(
                                 future: decryptMsg(
                                   message.messageForReceiver,
@@ -200,47 +192,29 @@ class _ChatScreenState extends State<ChatScreen> {
                                     return Row(
                                       textDirection: TextDirection.rtl,
                                       children: [
-                                        InkWell(
-                                          onLongPress: () {
-                                            Clipboard.setData(
-                                              ClipboardData(
-                                                text: messageString,
-                                              ),
-                                            );
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                              const SnackBar(
-                                                content:
-                                                    Text("Copied to Clipboard"),
-                                              ),
-                                            );
-                                          },
-                                          child: Container(
-                                            constraints: BoxConstraints(
-                                              maxWidth: MediaQuery.of(context)
-                                                      .size
-                                                      .width *
-                                                  0.6,
-                                              minWidth: 0,
+                                        Container(
+                                          constraints: BoxConstraints(
+                                            maxWidth: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                0.6,
+                                            minWidth: 0,
+                                          ),
+                                          margin: const EdgeInsets.only(top: 5),
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(15),
+                                            color: Colors.blue,
+                                          ),
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                              vertical: 10,
                                             ),
-                                            margin:
-                                                const EdgeInsets.only(top: 5),
-                                            decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(15),
-                                              color: Colors.blue,
-                                            ),
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                horizontal: 12,
-                                                vertical: 10,
-                                              ),
-                                              child: Text(
-                                                messageString,
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                ),
+                                            child: Text(
+                                              messageString,
+                                              style: const TextStyle(
+                                                color: Colors.white,
                                               ),
                                             ),
                                           ),
@@ -268,47 +242,29 @@ class _ChatScreenState extends State<ChatScreen> {
                                     return Row(
                                       textDirection: TextDirection.ltr,
                                       children: [
-                                        InkWell(
-                                          onLongPress: () {
-                                            Clipboard.setData(
-                                              ClipboardData(
-                                                text: messageString,
-                                              ),
-                                            );
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                              const SnackBar(
-                                                content:
-                                                    Text("Copied to Clipboard"),
-                                              ),
-                                            );
-                                          },
-                                          child: Container(
-                                            constraints: BoxConstraints(
-                                              maxWidth: MediaQuery.of(context)
-                                                      .size
-                                                      .width *
-                                                  0.6,
-                                              minWidth: 0,
+                                        Container(
+                                          constraints: BoxConstraints(
+                                            maxWidth: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                0.6,
+                                            minWidth: 0,
+                                          ),
+                                          margin: const EdgeInsets.only(top: 5),
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(15),
+                                            color: Colors.green,
+                                          ),
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                              vertical: 10,
                                             ),
-                                            margin:
-                                                const EdgeInsets.only(top: 5),
-                                            decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(15),
-                                              color: Colors.green,
-                                            ),
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                horizontal: 12,
-                                                vertical: 10,
-                                              ),
-                                              child: Text(
-                                                messageString,
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                ),
+                                            child: Text(
+                                              messageString,
+                                              style: const TextStyle(
+                                                color: Colors.white,
                                               ),
                                             ),
                                           ),

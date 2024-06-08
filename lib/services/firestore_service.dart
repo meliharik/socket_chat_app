@@ -104,6 +104,30 @@ class FirestoreService {
     return chat;
   }
 
+  // get group chat id
+  Future<String> getGroupChatId(String groupName) async {
+    var chat = await firestore
+        .collection('groupChats')
+        .where('groupName', isEqualTo: groupName)
+        .get();
+
+    return chat.docs.first.id;
+  }
+
+  // group chat must be unique
+  Future<bool> isGroupChatExist(String groupName) async {
+    var chat = await firestore
+        .collection('groupChats')
+        .where('groupName', isEqualTo: groupName)
+        .get();
+
+    if (chat.docs.isNotEmpty) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   // create a new message
   Future<void> createMessage({
     required String chatId,
@@ -178,6 +202,7 @@ class FirestoreService {
   Future<void> createGroupChat({
     required String groupName,
     required String groupDescription,
+    required String createdBy,
     String groupPhotoUrl = 'https://picsum.photos/200',
     List<String> users = const [],
   }) async {
@@ -187,6 +212,7 @@ class FirestoreService {
       'groupPhotoUrl': groupPhotoUrl,
       'users': users,
       'createdAt': now,
+      'createdBy': createdBy,
     });
   }
 
@@ -202,6 +228,87 @@ class FirestoreService {
         .collection('users')
         .where('phoneNumber', isNotEqualTo: auth.currentUser!.phoneNumber)
         .orderBy('createdAt', descending: true)
+        .snapshots();
+  }
+
+  // create group join request
+  //   required this.groupName,
+  // required this.groupId,
+  // required this.requestedUserId,
+  // required this.approvedUserId,
+  // required this.aesKey,
+  // required this.createdAt,
+
+  Future<void> createGroupJoinRequest({
+    required String groupName,
+    required String groupId,
+    required String requestedUserId,
+    required String approvedUserId,
+  }) async {
+    // first check if the request already exists
+    var request = await firestore
+        .collection('groupJoinRequests')
+        .where('groupId', isEqualTo: groupId)
+        .where('requestedUserId', isEqualTo: requestedUserId)
+        .get();
+
+    if (request.docs.isNotEmpty) {
+      return;
+    }
+
+    await firestore.collection('groupJoinRequests').add({
+      'groupName': groupName,
+      'groupId': groupId,
+      'requestedUserId': requestedUserId,
+      'approvedUserId': approvedUserId,
+      'aesKey': '',
+      'createdAt': now,
+    });
+  }
+
+  // get group join requests for approval
+  Stream getCurrentUsersGroupRequest(String phoneNumber) {
+    return firestore
+        .collection('groupJoinRequests')
+        .where('requestedUserId', isEqualTo: phoneNumber)
+        .snapshots();
+  }
+
+  // approve group join request
+  Future<void> approveGroupJoinRequest({
+    required String groupId,
+    required String requestedUserId,
+    required String aesKey,
+  }) async {
+    var request = await firestore
+        .collection('groupJoinRequests')
+        .where('groupId', isEqualTo: groupId)
+        .where('requestedUserId', isEqualTo: requestedUserId)
+        .get();
+
+        
+
+    if (request.docs.isNotEmpty) {
+      await firestore
+          .collection('groupJoinRequests')
+          .doc(request.docs.first.id)
+          .update({
+        'aesKey': aesKey,
+        // 'approvedUserId': auth.currentUser!.phoneNumber,
+      });
+
+      // add user to the group
+      await firestore.collection('groupChats').doc(groupId).update({
+        'users': FieldValue.arrayUnion([requestedUserId]),
+      });
+    }
+  }
+
+  // get group join requests for approval
+  Stream getGroupJoinRequestsForApproval(String phoneNumber) {
+    return firestore
+        .collection('groupJoinRequests')
+        .where('approvedUserId', isEqualTo: phoneNumber)
         .snapshots();
   }
 }

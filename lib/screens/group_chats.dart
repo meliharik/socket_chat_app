@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:socket_chat_app/controllers/socket_controller.dart';
 import 'package:socket_chat_app/helpers/dialog.dart';
@@ -12,6 +13,7 @@ import 'package:socket_chat_app/models/group_chat.dart';
 import 'package:socket_chat_app/models/subscription_models.dart';
 import 'package:socket_chat_app/screens/create_group_chat.dart';
 import 'package:socket_chat_app/screens/group_chat_screen.dart';
+import 'package:socket_chat_app/screens/group_requests.dart';
 import 'package:socket_chat_app/services/firestore_service.dart';
 
 class GroupChatsScreen extends StatefulWidget {
@@ -23,6 +25,8 @@ class GroupChatsScreen extends StatefulWidget {
 
 class _GroupChatsScreenState extends State<GroupChatsScreen> {
   bool isLoading = false;
+  final storage = const FlutterSecureStorage();
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -30,6 +34,17 @@ class _GroupChatsScreenState extends State<GroupChatsScreen> {
         Scaffold(
           backgroundColor: Colors.black,
           appBar: AppBar(
+            leading: IconButton(
+              onPressed: () {
+                Navigator.push(
+                  GlobalcontextService.navigatorKey.currentContext!,
+                  MaterialPageRoute(
+                    builder: (_) => const GroupRequestsScreen(),
+                  ),
+                );
+              },
+              icon: const Icon(CupertinoIcons.question),
+            ),
             actions: [
               IconButton(
                 onPressed: () {
@@ -96,6 +111,55 @@ class _GroupChatsScreenState extends State<GroupChatsScreen> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                           onTap: () async {
+                            bool haveKey = await storage.read(
+                                        key: docIds[index]) !=
+                                    null &&
+                                await storage.read(key: docIds[index]) != '';
+                            if (!haveKey) {
+                              showCupertinoDialog(
+                                context: GlobalcontextService
+                                    .navigatorKey.currentContext!,
+                                builder: (context) {
+                                  return CupertinoAlertDialog(
+                                    title: const Text(
+                                      'Ooppsss',
+                                    ),
+                                    content: const Text(
+                                      'You need to be a member of this group to chat. Please ask the group admin to add you.',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () async {
+                                          await FirestoreService()
+                                              .createGroupJoinRequest(
+                                            groupId: docIds[index],
+                                            groupName: user.groupName,
+                                            requestedUserId: FirestoreService()
+                                                .auth
+                                                .currentUser!
+                                                .phoneNumber!,
+                                            approvedUserId: user.createdBy,
+                                          );
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text('Send Request'),
+                                      ),
+                                      // close btn
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text('Close'),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                              return;
+                            }
+                            String groupAesKey =
+                                await storage.read(key: docIds[index]) ?? '';
+                            debugPrint('groupAesKey: $groupAesKey');
                             setState(() {
                               isLoading = true;
                             });

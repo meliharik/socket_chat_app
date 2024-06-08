@@ -1,7 +1,9 @@
+import 'package:encrypt/encrypt.dart' as aes;
+import 'package:encrypt/encrypt.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:socket_chat_app/controllers/socket_controller.dart';
 import 'package:socket_chat_app/models/events.dart';
 import 'package:socket_chat_app/models/firestore_group_message.dart';
@@ -22,6 +24,8 @@ class GroupChatScreen extends StatefulWidget {
 class _GroupChatScreenState extends State<GroupChatScreen> {
   SocketController? _socketController;
   late final TextEditingController _textEditingController;
+
+  final storage = const FlutterSecureStorage();
 
   bool _isTextFieldHasContentYet = false;
 
@@ -73,7 +77,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     // _controller.jumpTo(0);
   }
 
-  void _sendMessage() {
+  void _sendMessage() async {
     if (_textEditingController.text.isEmpty) return;
     // close the keyboard
     FocusScope.of(context).unfocus();
@@ -81,7 +85,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     _socketController?.sendMessage(message);
     FirestoreService().createGroupChatMessage(
       chatId: widget.chatId,
-      message: _textEditingController.text,
+      message: await encryptMsg(_textEditingController.text),
       senderPhoneNumber: FirebaseAuth.instance.currentUser!.phoneNumber!,
     );
     _textEditingController.clear();
@@ -120,101 +124,112 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                       FirestoreGroupMessage message = messages[index];
                       if (message.senderId ==
                           FirebaseAuth.instance.currentUser!.phoneNumber) {
-                        return Column(
-                          children: [
-                            Row(
-                              textDirection: TextDirection.rtl,
-                              children: [
-                                Text(message.senderId),
-                              ],
-                            ),
-                            Row(
-                              textDirection: TextDirection.rtl,
-                              children: [
-                                InkWell(
-                                  onLongPress: () {
-                                    Clipboard.setData(ClipboardData(
-                                        text: message.senderId.trim()));
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                            content:
-                                                Text("Copied to Clipboard")));
-                                  },
-                                  child: Container(
-                                    constraints: BoxConstraints(
-                                        maxWidth:
-                                            MediaQuery.of(context).size.width *
-                                                0.6,
-                                        minWidth: 0),
-                                    margin: const EdgeInsets.only(top: 5),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(15),
-                                      color: Colors.blue,
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 12, vertical: 10),
-                                      child: Text(
-                                        message.message,
-                                        style: const TextStyle(
-                                            color: Colors.white),
-                                      ),
-                                    ),
+                        return FutureBuilder(
+                          future: decryptMsg(message.message),
+                          builder:
+                              (BuildContext context, AsyncSnapshot snapshot) {
+                            if (snapshot.hasData) {
+                              String messageString = snapshot.data;
+                              debugPrint("messageString: $messageString");
+                              return Column(
+                                children: [
+                                  Row(
+                                    textDirection: TextDirection.rtl,
+                                    children: [
+                                      Text(message.senderId),
+                                    ],
                                   ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 10)
-                          ],
+                                  Row(
+                                    textDirection: TextDirection.rtl,
+                                    children: [
+                                      Container(
+                                        constraints: BoxConstraints(
+                                          maxWidth: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.6,
+                                          minWidth: 0,
+                                        ),
+                                        margin: const EdgeInsets.only(top: 5),
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(15),
+                                          color: Colors.blue,
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 12, vertical: 10),
+                                          child: Text(
+                                            messageString,
+                                            style: const TextStyle(
+                                                color: Colors.white),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 10)
+                                ],
+                              );
+                            } else {
+                              return const SizedBox();
+                            }
+                          },
                         );
                       } else {
-                        return Column(
-                          children: [
-                            Row(
-                              textDirection: TextDirection.ltr,
-                              children: [
-                                Text(message.senderId),
-                              ],
-                            ),
-                            Row(
-                              textDirection: TextDirection.ltr,
-                              children: [
-                                InkWell(
-                                  onLongPress: () {
-                                    Clipboard.setData(ClipboardData(
-                                        text: message.message.trim()));
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                            content:
-                                                Text("Copied to Clipboard")));
-                                  },
-                                  child: Container(
-                                    constraints: BoxConstraints(
-                                        maxWidth:
-                                            MediaQuery.of(context).size.width *
+                        return FutureBuilder(
+                            future: decryptMsg(message.message),
+                            builder:
+                                (BuildContext context, AsyncSnapshot snapshot) {
+                              if (snapshot.hasData) {
+                                String messageString = snapshot.data;
+                                debugPrint("messageString: $messageString");
+                                return Column(
+                                  children: [
+                                    Row(
+                                      textDirection: TextDirection.ltr,
+                                      children: [
+                                        Text(message.senderId),
+                                      ],
+                                    ),
+                                    Row(
+                                      textDirection: TextDirection.ltr,
+                                      children: [
+                                        Container(
+                                          constraints: BoxConstraints(
+                                            maxWidth: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
                                                 0.6,
-                                        minWidth: 0),
-                                    margin: const EdgeInsets.only(top: 5),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(15),
-                                      color: Colors.green,
+                                            minWidth: 0,
+                                          ),
+                                          margin: const EdgeInsets.only(top: 5),
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(15),
+                                            color: Colors.green,
+                                          ),
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                              vertical: 10,
+                                            ),
+                                            child: Text(
+                                              messageString,
+                                              style: const TextStyle(
+                                                  color: Colors.white),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 12, vertical: 10),
-                                      child: Text(
-                                        message.message,
-                                        style: const TextStyle(
-                                            color: Colors.white),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 10)
-                          ],
-                        );
+                                    const SizedBox(height: 10)
+                                  ],
+                                );
+                              } else {
+                                return const SizedBox();
+                              }
+                            });
                       }
                     },
                   ),
@@ -245,7 +260,6 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                             final event = events[index];
                             //? If the event is a new message
                             if (event is Message) {
-                              //TODO: Determin the type of the message user by using user's socket_id not his name.
                               return Column(
                                 children: [
                                   Row(
@@ -335,5 +349,41 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
         ),
       ),
     );
+  }
+
+  Future<String> encryptMsg(String text) async {
+    String keyString = await storage.read(key: widget.chatId) ?? "";
+    final key = aes.Key.fromUtf8(keyString);
+    final iv = IV.allZerosOfLength(16);
+
+    final encrypter = Encrypter(AES(key));
+
+    final encrypted = encrypter.encrypt(text, iv: iv);
+    debugPrint('encrypted: ${encrypted.base64}');
+
+    debugPrint('key: $keyString');
+
+    return encrypted.base64;
+  }
+
+  Future<String> decryptMsg(String text) async {
+    try {
+      String keyString = await storage.read(key: widget.chatId) ?? "";
+
+      final key = aes.Key.fromUtf8(keyString);
+      final iv = IV.allZerosOfLength(16);
+
+      final encrypter = Encrypter(AES(key));
+
+      final encrypted = Encrypted.fromBase64(text);
+      debugPrint('encrypted: ${encrypted.base64}');
+      final decrypted = encrypter.decrypt(encrypted, iv: iv);
+      debugPrint(decrypted);
+      return decrypted;
+    } catch (e) {
+      // TODO
+      debugPrint("Error: $e");
+      return "";
+    }
   }
 }

@@ -1,5 +1,9 @@
-import 'package:flutter/cupertino.dart';
+// ignore_for_file: use_build_context_synchronously
+
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:socket_chat_app/helpers/dialog.dart';
 import 'package:socket_chat_app/services/firestore_service.dart';
@@ -14,6 +18,9 @@ class CreateGroupChatScreen extends StatefulWidget {
 class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
   TextEditingController groupNameController = TextEditingController();
   TextEditingController groupDescriptionController = TextEditingController();
+
+  final storage = const FlutterSecureStorage();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,7 +51,7 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(
+                  borderSide: const BorderSide(
                     color: Colors.white,
                   ),
                 ),
@@ -66,7 +73,7 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(
+                  borderSide: const BorderSide(
                     color: Colors.white,
                   ),
                 ),
@@ -77,13 +84,13 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
             padding: const EdgeInsets.all(8.0),
             child: ElevatedButton(
               style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all(Colors.white),
-                shape: MaterialStateProperty.all(
+                backgroundColor: WidgetStateProperty.all(Colors.white),
+                shape: WidgetStateProperty.all(
                   RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                fixedSize: MaterialStateProperty.all(
+                fixedSize: WidgetStateProperty.all(
                   Size(
                     MediaQuery.of(context).size.width,
                     65,
@@ -91,6 +98,9 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
                 ),
               ),
               onPressed: () async {
+                // final key = aes.Key.fromSecureRandom(32);
+                // debugPrint(key.base64);
+                // return;
                 if (groupNameController.text.isEmpty ||
                     groupDescriptionController.text.isEmpty) {
                   DialogHelper().showCustomDialog(
@@ -99,11 +109,49 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
                   );
                   return;
                 }
+                // name must be unique
+                bool exists = await FirestoreService().isGroupChatExist(
+                  groupNameController.text,
+                );
+                if (exists) {
+                  DialogHelper().showCustomDialog(
+                    title: "Error",
+                    subtitle: "Group name already exists.",
+                  );
+                  return;
+                }
                 try {
                   await FirestoreService().createGroupChat(
+                    createdBy:
+                        FirestoreService().auth.currentUser!.phoneNumber!,
                     groupName: groupNameController.text,
                     groupDescription: groupDescriptionController.text,
                   );
+
+                  // get the group chat id
+                  String id = await FirestoreService().getGroupChatId(
+                    groupNameController.text,
+                  );
+
+                  String randomKey = generateRandomKey(32);
+                  debugPrint("AES Key: $randomKey");
+
+                  // save the key to the storage
+                  await storage.write(key: id, value: randomKey);
+
+                  // final key = aes.Key.fromUtf8(randomKey);
+                  // final iv = IV.fromLength(16);
+
+                  // final encrypter = Encrypter(AES(key));
+
+                  // final encrypted =
+                  //     encrypter.encrypt('selam ben melih', iv: iv);
+                  // debugPrint(encrypted.base64);
+
+                  // // decrypt from base64 and key
+                  // final decrypted = encrypter.decrypt(encrypted, iv: iv);
+                  // debugPrint(decrypted);
+
                   Navigator.pop(context);
                 } catch (e) {
                   DialogHelper().showCustomDialog(
@@ -124,5 +172,14 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
         ],
       ),
     );
+  }
+
+  String generateRandomKey(int length) {
+    const characters =
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    final random = Random();
+    return List.generate(
+            length, (index) => characters[random.nextInt(characters.length)])
+        .join();
   }
 }

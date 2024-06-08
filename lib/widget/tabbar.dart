@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:socket_chat_app/controllers/socket_controller.dart';
 import 'package:socket_chat_app/screens/chats.dart';
 import 'package:socket_chat_app/screens/group_chats.dart';
+import 'package:socket_chat_app/screens/settings/settings.dart';
 import 'package:socket_chat_app/services/remote_config_service.dart';
 
 class TabBarMain extends StatefulWidget {
@@ -27,6 +28,9 @@ class _TabBarMainState extends State<TabBarMain> {
       SocketController.get(context)
         ..init(url: url)
         ..connect(
+          connected: () {
+            debugPrint('Connected to socket');
+          },
           onConnectionError: (data) {
             debugPrint(data.toString());
           },
@@ -75,7 +79,7 @@ class _TabBarMainState extends State<TabBarMain> {
                 case 1:
                   return const GroupChatsScreen();
                 case 2:
-                  return const ChatsScreen();
+                  return const SettingsScreen();
                 default:
                   return const ChatsScreen();
               }

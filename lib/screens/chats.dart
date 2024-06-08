@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:socket_chat_app/controllers/socket_controller.dart';
 import 'package:socket_chat_app/helpers/dialog.dart';
@@ -20,6 +21,20 @@ class ChatsScreen extends StatefulWidget {
 
 class _ChatsScreenState extends State<ChatsScreen> {
   bool isLoading = false;
+
+  final storage = const FlutterSecureStorage();
+
+  @override
+  void initState() {
+    super.initState();
+    printPubKey();
+  }
+
+  printPubKey() async {
+    String? pubKey = await storage.read(key: "pub_key");
+    debugPrint('pub_key: $pubKey');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -65,6 +80,8 @@ class _ChatsScreenState extends State<ChatsScreen> {
                       ),
                     );
                   }
+
+                  debugPrint('snapshot: ${snapshot.connectionState}');
 
                   return ListView.separated(
                     separatorBuilder: (context, index) =>

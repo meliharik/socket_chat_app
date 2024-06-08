@@ -24,7 +24,7 @@ void main() async {
     ],
   );
 
-    try {
+  try {
     await FirebaseRemoteConfigService().initialize();
     debugPrint('FirebaseRemoteConfigService initialized');
   } catch (e) {
@@ -45,7 +45,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Provider(
       create: (_) => SocketController(),
-      child: MaterialApp(debugShowCheckedModeBanner: false,
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         navigatorKey: GlobalcontextService.navigatorKey,
         home: const RedirectPage(),
         theme: ThemeData.dark(),

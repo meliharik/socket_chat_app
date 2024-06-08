@@ -4,7 +4,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:socket_chat_app/main.dart';
+import 'package:socket_chat_app/models/firestore_user.dart';
 import 'package:socket_chat_app/screens/auth/enter_number.dart';
+import 'package:socket_chat_app/services/firestore_service.dart';
 import 'package:socket_chat_app/widget/tabbar.dart';
 
 class RedirectPage extends StatefulWidget {
@@ -34,7 +36,18 @@ class _RedirectPageState extends State<RedirectPage> {
   userControl() async {
     await Future.delayed(const Duration(seconds: 2));
     User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
+    if (user != null && user.phoneNumber != null) {
+      bool isUserExist =
+          await FirestoreService().isUserExist(user.phoneNumber!);
+      if (!isUserExist) {
+        FirebaseAuth.instance.signOut();
+        Navigator.pushAndRemoveUntil(
+          GlobalcontextService.navigatorKey.currentContext!,
+          MaterialPageRoute(builder: (context) => const EnterNumberScreen()),
+          (route) => false,
+        );
+        return;
+      }
       debugPrint("User is already logged in");
       debugPrint('name: ${user.displayName}');
       debugPrint('photo: ${user.photoURL}');

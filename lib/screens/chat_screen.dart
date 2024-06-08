@@ -2,10 +2,12 @@
 
 import 'dart:async';
 
+import 'package:fast_rsa/fast_rsa.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:socket_chat_app/controllers/socket_controller.dart';
 import 'package:socket_chat_app/models/events.dart';
 import 'package:socket_chat_app/models/firestore_message.dart';
@@ -32,13 +34,28 @@ class _ChatScreenState extends State<ChatScreen> {
   List<FirestoreMessage> messages = [];
   final ScrollController controller = ScrollController();
 
+  final storage = const FlutterSecureStorage();
+
+  List<String> messagesString = [];
+
   @override
   void initState() {
     _textEditingController = TextEditingController();
 
     getMessages();
-    scrollDown();
+    socketSetup();
+    printPublicKeys();
     super.initState();
+  }
+
+  printPublicKeys() async {
+    var publicKey = await storage.read(key: "pub_key");
+
+    debugPrint("publicKey: $publicKey");
+
+    var publicKey2 = widget.user.publicKey;
+
+    debugPrint("publicKey2: $publicKey2");
   }
 
   @override
@@ -54,6 +71,19 @@ class _ChatScreenState extends State<ChatScreen> {
         messages = value;
       });
     });
+
+    for (var element in messages) {
+      messagesString.add(await decryptMsg(
+        element.messageForReceiver,
+        element.senderId,
+        element.receiverId,
+        element.messageForSender,
+      ));
+    }
+    setState(() {});
+  }
+
+  socketSetup() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _socketController = SocketController.get(context);
 
@@ -74,11 +104,7 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  void scrollDown() {
-    // _controller.jumpTo(0);
-  }
-
-  void _sendMessage() {
+  Future<void> _sendMessage() async {
     if (_textEditingController.text.isEmpty) return;
     FocusScope.of(context).unfocus();
 
@@ -86,7 +112,8 @@ class _ChatScreenState extends State<ChatScreen> {
     _socketController?.sendMessage(message);
     FirestoreService().createMessage(
       chatId: widget.chatId,
-      message: _textEditingController.text,
+      messageForReceiver: await encryptMsg(_textEditingController.text),
+      messageForSender: await encryptMsgForSender(_textEditingController.text),
       senderPhoneNumber: FirebaseAuth.instance.currentUser!.phoneNumber!,
       receiverPhoneNumber: widget.user.phoneNumber,
     );
@@ -146,83 +173,152 @@ class _ChatScreenState extends State<ChatScreen> {
                         separatorBuilder: (context, index) =>
                             const SizedBox(height: 5.0),
                         itemBuilder: (context, index) {
+                          // String messageString = messagesString[index];
+                          // return Text(
+                          //   messageString,
+                          //   style: const TextStyle(
+                          //     color: Colors.white,
+                          //   ),
+                          // );
                           FirestoreMessage message = messages[index];
                           if (message.senderId ==
                               FirebaseAuth.instance.currentUser!.phoneNumber) {
-                            return Row(
-                              textDirection: TextDirection.rtl,
-                              children: [
-                                InkWell(
-                                  onLongPress: () {
-                                    Clipboard.setData(ClipboardData(
-                                        text: message.messageForSender.trim()));
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                            content:
-                                                Text("Copied to Clipboard")));
-                                  },
-                                  child: Container(
-                                    constraints: BoxConstraints(
-                                        maxWidth:
-                                            MediaQuery.of(context).size.width *
-                                                0.6,
-                                        minWidth: 0),
-                                    margin: const EdgeInsets.only(top: 5),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(15),
-                                      color: Colors.blue,
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 12, vertical: 10),
-                                      child: Text(
-                                        message.messageForSender,
-                                        style: const TextStyle(
-                                            color: Colors.white),
-                                      ),
-                                    ),
-                                  ),
+                            debugPrint('sea');
+                            return FutureBuilder(
+                                future: decryptMsg(
+                                  message.messageForReceiver,
+                                  message.senderId,
+                                  message.receiverId,
+                                  message.messageForSender,
                                 ),
-                              ],
-                            );
+                                builder: (BuildContext context,
+                                    AsyncSnapshot snapshot) {
+                                  if (snapshot.hasData) {
+                                    String messageString = snapshot.data;
+                                    debugPrint("messageString: $messageString");
+
+                                    return Row(
+                                      textDirection: TextDirection.rtl,
+                                      children: [
+                                        InkWell(
+                                          onLongPress: () {
+                                            Clipboard.setData(
+                                              ClipboardData(
+                                                text: messageString,
+                                              ),
+                                            );
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              const SnackBar(
+                                                content:
+                                                    Text("Copied to Clipboard"),
+                                              ),
+                                            );
+                                          },
+                                          child: Container(
+                                            constraints: BoxConstraints(
+                                              maxWidth: MediaQuery.of(context)
+                                                      .size
+                                                      .width *
+                                                  0.6,
+                                              minWidth: 0,
+                                            ),
+                                            margin:
+                                                const EdgeInsets.only(top: 5),
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(15),
+                                              color: Colors.blue,
+                                            ),
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                horizontal: 12,
+                                                vertical: 10,
+                                              ),
+                                              child: Text(
+                                                messageString,
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  } else {
+                                    return const SizedBox();
+                                  }
+                                });
                           } else {
-                            return Row(
-                              textDirection: TextDirection.ltr,
-                              children: [
-                                InkWell(
-                                  onLongPress: () {
-                                    Clipboard.setData(ClipboardData(
-                                        text:
-                                            message.messageForReceiver.trim()));
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                            content:
-                                                Text("Copied to Clipboard")));
-                                  },
-                                  child: Container(
-                                    constraints: BoxConstraints(
-                                        maxWidth:
-                                            MediaQuery.of(context).size.width *
-                                                0.6,
-                                        minWidth: 0),
-                                    margin: const EdgeInsets.only(top: 5),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(15),
-                                      color: Colors.green,
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 12, vertical: 10),
-                                      child: Text(
-                                        message.messageForReceiver,
-                                        style: const TextStyle(
-                                            color: Colors.white),
-                                      ),
-                                    ),
-                                  ),
+                            return FutureBuilder(
+                                future: decryptMsg(
+                                  message.messageForReceiver,
+                                  message.senderId,
+                                  message.receiverId,
+                                  message.messageForSender,
                                 ),
-                              ],
-                            );
+                                builder: (BuildContext context,
+                                    AsyncSnapshot snapshot) {
+                                  if (snapshot.hasData) {
+                                    String messageString = snapshot.data;
+                                    debugPrint(
+                                        "messageString2: $messageString");
+                                    return Row(
+                                      textDirection: TextDirection.ltr,
+                                      children: [
+                                        InkWell(
+                                          onLongPress: () {
+                                            Clipboard.setData(
+                                              ClipboardData(
+                                                text: messageString,
+                                              ),
+                                            );
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              const SnackBar(
+                                                content:
+                                                    Text("Copied to Clipboard"),
+                                              ),
+                                            );
+                                          },
+                                          child: Container(
+                                            constraints: BoxConstraints(
+                                              maxWidth: MediaQuery.of(context)
+                                                      .size
+                                                      .width *
+                                                  0.6,
+                                              minWidth: 0,
+                                            ),
+                                            margin:
+                                                const EdgeInsets.only(top: 5),
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(15),
+                                              color: Colors.green,
+                                            ),
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                horizontal: 12,
+                                                vertical: 10,
+                                              ),
+                                              child: Text(
+                                                messageString,
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  } else {
+                                    return const SizedBox();
+                                  }
+                                });
                           }
                         },
                       ),
@@ -333,5 +429,64 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       ),
     );
+  }
+
+  Future<String> decryptMsg(
+    String secretMessage,
+    String senderId,
+    String receiverId,
+    String secretMessageForSender,
+  ) async {
+    var privateKey = await storage.read(key: "pri_key");
+    var userid = await storage.read(key: "number");
+
+    debugPrint('privateKey: $privateKey');
+    debugPrint('userid: $userid');
+
+    debugPrint('secretMessage: $secretMessage');
+    debugPrint('senderId: $senderId');
+    debugPrint('receiverId: $receiverId');
+    debugPrint('secretMessageForSender: $secretMessageForSender');
+
+    // debugPrint("privateKey: $privateKey");
+
+    if (senderId == userid) {
+      var deMsg =
+          await RSA.decryptPKCS1v15(secretMessageForSender, privateKey!);
+      debugPrint(deMsg);
+
+      return deMsg;
+    }
+
+    // debugPrint("privateKey: $privateKey");
+
+    var deMsg = await RSA.decryptPKCS1v15(secretMessage, privateKey!);
+    debugPrint(deMsg);
+
+    return deMsg;
+  }
+
+  Future<String> encryptMsg(String message) async {
+    String publicKey = '';
+    publicKey = widget.user.publicKey;
+    debugPrint('widget.user.publicKey: $publicKey');
+    debugPrint('message: $message');
+
+    var enMsg = await RSA.encryptPKCS1v15(message, publicKey);
+    debugPrint("enMsg: $enMsg");
+
+    return enMsg;
+  }
+
+  Future<String> encryptMsgForSender(String message) async {
+    var publicKey = await storage.read(key: "pub_key") ?? '';
+
+    debugPrint("publicKey: $publicKey");
+    debugPrint('message: $message');
+
+    var enMsg = await RSA.encryptPKCS1v15(message, publicKey);
+    debugPrint("enMsg: $enMsg");
+
+    return enMsg;
   }
 }

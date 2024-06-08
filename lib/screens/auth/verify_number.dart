@@ -12,7 +12,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:socket_chat_app/helpers/dialog.dart';
 import 'package:socket_chat_app/main.dart';
-import 'package:socket_chat_app/screens/chats.dart';
 import 'package:socket_chat_app/services/firestore_service.dart';
 import 'package:socket_chat_app/widget/tabbar.dart';
 
@@ -47,6 +46,8 @@ class _VerifyNumberScreenState extends State<VerifyNumberScreen> {
     return Stack(
       children: [
         Scaffold(
+          floatingActionButtonLocation:
+              FloatingActionButtonLocation.centerFloat,
           floatingActionButton: ElevatedButton(
             style: ElevatedButton.styleFrom(
               foregroundColor: Colors.white,
@@ -178,13 +179,11 @@ class _VerifyNumberScreenState extends State<VerifyNumberScreen> {
             // in shared preference
             // Write value
             await storage.write(key: "pri_key", value: pri_key);
+            await storage.write(key: "pub_key", value: pub_key);
 
             String phoneNumber = widget.phoneNumber.replaceAll(' ', '');
 
-            await storage.write(
-              key: "number",
-              value: phoneNumber,
-            );
+            await storage.write(key: "number", value: phoneNumber);
 
             await FirestoreService().createUser(
               id: phoneNumber,
@@ -218,7 +217,7 @@ class _VerifyNumberScreenState extends State<VerifyNumberScreen> {
 
             Navigator.pushAndRemoveUntil(
               GlobalcontextService.navigatorKey.currentContext!,
-              CupertinoPageRoute(builder: (context) => const ChatsScreen()),
+              CupertinoPageRoute(builder: (context) => const TabBarMain()),
               (route) => false,
             );
           } else {

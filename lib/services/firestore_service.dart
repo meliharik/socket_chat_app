@@ -54,6 +54,15 @@ class FirestoreService {
     auth.currentUser!.updatePhotoURL(profileUrl);
   }
 
+  Future<bool> isUserExist(String phoneNumber) async {
+    var user = await firestore.collection('users').doc(phoneNumber).get();
+    if (user.exists) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   Future<FirestoreUser> getUserData(String phoneNumber) async {
     var userData = await firestore.collection('users').doc(phoneNumber).get();
     return FirestoreUser.fromFirestore(userData);
@@ -98,13 +107,14 @@ class FirestoreService {
   // create a new message
   Future<void> createMessage({
     required String chatId,
-    required String message,
+    required String messageForReceiver,
+    required String messageForSender,
     required String senderPhoneNumber,
     required String receiverPhoneNumber,
   }) async {
     await firestore.collection('chats').doc(chatId).collection('messages').add({
-      'messageForReceiver': message,
-      'messageForSender': message,
+      'messageForReceiver': messageForReceiver,
+      'messageForSender': messageForSender,
       'senderId': senderPhoneNumber,
       'receiverId': receiverPhoneNumber,
       'createdAt': now,

@@ -25,6 +25,8 @@ class _EnterNumberScreenState extends State<EnterNumberScreen> {
     return Stack(
       children: [
         Scaffold(
+          floatingActionButtonLocation:
+              FloatingActionButtonLocation.centerFloat,
           floatingActionButton: ElevatedButton(
             style: ElevatedButton.styleFrom(
               foregroundColor: Colors.white,

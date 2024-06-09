@@ -6,12 +6,12 @@ import 'package:fast_rsa/fast_rsa.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:socket_chat_app/controllers/socket_controller.dart';
 import 'package:socket_chat_app/models/events.dart';
 import 'package:socket_chat_app/models/firestore_message.dart';
 import 'package:socket_chat_app/models/firestore_user.dart';
+import 'package:socket_chat_app/screens/encrypted_messages.dart';
 import 'package:socket_chat_app/services/firestore_service.dart';
 import 'package:socket_chat_app/widget/advanced_text_field.dart';
 import 'package:socket_chat_app/widget/chat_bubble.dart';
@@ -129,10 +129,25 @@ class _ChatScreenState extends State<ChatScreen> {
         child: Scaffold(
           backgroundColor: Colors.black,
           appBar: AppBar(
+            actions: [
+              //developer icon
+              IconButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EncryptedMessagesScreen(
+                        chatId: widget.chatId,
+                      ),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.developer_mode),
+              ),
+            ],
             surfaceTintColor: Colors.transparent,
             backgroundColor: Colors.black,
             centerTitle: true,
-            // users circle avatar and phone number
             title: Row(
               children: [
                 CircleAvatar(
@@ -149,7 +164,6 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
               ],
             ),
-
             leading: IconButton(
               icon: const Icon(CupertinoIcons.back),
               onPressed: () {
@@ -307,7 +321,6 @@ class _ChatScreenState extends State<ChatScreen> {
                                 final event = events[index];
                                 //? If the event is a new message
                                 if (event is Message) {
-                                  //TODO: Determin the type of the message user by using user's socket_id not his name.
                                   return TextBubble(
                                     message: event,
                                     type: event.userName ==

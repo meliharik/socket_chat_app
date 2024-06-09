@@ -30,7 +30,6 @@ class FirebaseRemoteConfigService {
   Future<void> _setConfigSettings() async => _remoteConfig.setConfigSettings(
         RemoteConfigSettings(
           fetchTimeout: const Duration(minutes: 1),
-          //TODO you may want to change this to a longer duration in production
           minimumFetchInterval: kDebugMode
               ? const Duration(seconds: 30)
               : const Duration(seconds: 30),

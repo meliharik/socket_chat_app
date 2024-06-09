@@ -2,12 +2,13 @@ import 'package:encrypt/encrypt.dart' as aes;
 import 'package:encrypt/encrypt.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:socket_chat_app/controllers/socket_controller.dart';
 import 'package:socket_chat_app/models/events.dart';
 import 'package:socket_chat_app/models/firestore_group_message.dart';
 import 'package:socket_chat_app/models/group_chat.dart';
+import 'package:socket_chat_app/screens/encrypted_group_messages.dart';
+import 'package:socket_chat_app/screens/encrypted_messages.dart';
 import 'package:socket_chat_app/services/firestore_service.dart';
 import 'package:socket_chat_app/widget/advanced_text_field.dart';
 import 'package:socket_chat_app/widget/chat_bubble.dart';
@@ -96,6 +97,21 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EncryptedGroupMessagesScreen(
+                    chatId: widget.chatId,
+                  ),
+                ),
+              );
+            },
+            icon: const Icon(Icons.developer_mode),
+          )
+        ],
         surfaceTintColor: Colors.transparent,
         centerTitle: true,
         backgroundColor: Colors.black,
@@ -381,7 +397,6 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
       debugPrint(decrypted);
       return decrypted;
     } catch (e) {
-      // TODO
       debugPrint("Error: $e");
       return "";
     }

@@ -8,7 +8,6 @@ import 'package:socket_chat_app/models/events.dart';
 import 'package:socket_chat_app/models/firestore_group_message.dart';
 import 'package:socket_chat_app/models/group_chat.dart';
 import 'package:socket_chat_app/screens/encrypted_group_messages.dart';
-import 'package:socket_chat_app/screens/encrypted_messages.dart';
 import 'package:socket_chat_app/services/firestore_service.dart';
 import 'package:socket_chat_app/widget/advanced_text_field.dart';
 import 'package:socket_chat_app/widget/chat_bubble.dart';

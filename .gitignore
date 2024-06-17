@@ -44,3 +44,5 @@ app.*.map.json
 
 /lib/generated_plugin_registrant.dart
 /lib/firebase_options.dart
+
+/server/node_modules/
